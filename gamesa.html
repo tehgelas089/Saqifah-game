@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Hijaiyah</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(to right, #ff9a9e, #66faf5);
+            color: #fff;
+        }
+        .letter-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 10px;
+            position: relative;
+        }
+        .letter {
+            font-size: 30px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            position: absolute;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .letter:hover {
+            transform: scale(1.2);
+        }
+        .letter.correct {
+            background-color: #4CAF50;
+        }
+        .letter.wrong {
+            background-color: #FF5733;
+        }
+        .letter:nth-child(odd) {
+            background-color: #FFD700;
+        }
+        .letter:nth-child(even) {
+            background-color: #00CED1;
+        }
+        #feedback, #timer {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cari Huruf Hijaiyah</h1>
+    <p>Waktu tersisa: <span id="timer">30</span> detik</p>
+    <p>Cari huruf: <span id="target-letter" style="font-size: 30px; font-weight: bold;"></span></p>
+    <div class="letter-container" id="letter-container"></div>
+    <p id="feedback"></p>
+
+    <script>
+        const hijaiyah = ['ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي'];
+        let targetLetter = '';
+        let level = 1;
+        let timeLeft = 30;
+        let timer;
+
+        function startTimer() {
+            clearInterval(timer);
+            timer = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    document.getElementById('timer').textContent = timeLeft;
+                } else {
+                    clearInterval(timer);
+                    alert('Waktu habis! Skor Anda: ' + (level - 1));
+                    level = 1;
+                    timeLeft = 30;
+                    generateGame();
+                    startTimer();
+                }
+            }, 1000);
+        }
+
+        function generateGame() {
+            const numLetters = Math.min(6 + level, hijaiyah.length);
+            const shuffled = hijaiyah.sort(() => 0.5 - Math.random()).slice(0, numLetters);
+            targetLetter = shuffled[Math.floor(Math.random() * shuffled.length)];
+            document.getElementById('target-letter').textContent = targetLetter;
+            document.getElementById('feedback').textContent = '';
+
+            const container = document.getElementById('letter-container');
+            container.innerHTML = '';
+            let positions = [];
+
+            shuffled.forEach(letter => {
+                let letterDiv = document.createElement('div');
+                letterDiv.classList.add('letter');
+                letterDiv.textContent = letter;
+                
+                let top, left;
+                let overlapping;
+                
+                do {
+                    top = Math.random() * 300 + 30;
+                    left = Math.random() * 300 + 30;
+                    overlapping = positions.some(pos => Math.abs(pos.top - top) < 55 && Math.abs(pos.left - left) < 55);
+                } while (overlapping);
+                
+                positions.push({ top, left });
+                letterDiv.style.top = top + 'px';
+                letterDiv.style.left = left + 'px';
+                
+                letterDiv.addEventListener('click', () => checkAnswer(letterDiv, letter));
+                container.appendChild(letterDiv);
+            });
+        }
+
+        function checkAnswer(element, letter) {
+            if (letter === targetLetter) {
+                element.classList.add('correct');
+                document.getElementById('feedback').textContent = 'Benar!';
+                level++;
+                generateGame();
+            } else {
+                element.classList.add('wrong');
+                document.getElementById('feedback').textContent = 'Salah, coba lagi!';
+                setTimeout(() => element.classList.remove('wrong'), 500);
+            }
+        }
+
+        generateGame();
+        startTimer();
+    </script>
+</body>
+</html>
